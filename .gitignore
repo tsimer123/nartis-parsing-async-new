@@ -1,0 +1,17 @@
+/env/
+/.vscode/
+/__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+config.py
+.env
+.env copy
+*.xlsx
+*.zip
+*.db
+/src/test.py
+/src/test2.py
+
+
+
+
