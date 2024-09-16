@@ -45,19 +45,7 @@ def convert_sours_to_dict(uspd: list[list]) -> list[EquipmentInExcel]:
     count = 1
     for line in uspd:
         temp_uspd = UspdEquipmentInExcel(name=str(line[0]), ip1=line[1], ip2=line[2])
-        temp_dict = EquipmentInExcel(uspd=temp_uspd, command=line[4])
-        # temp_dict = {
-        #     'sub_task_id': '',
-        #     'uspd': {
-        #         'name': str(line[0]),
-        #         'ip1': line[1],
-        #         'ip2': line[2],
-        #         'login': 'admin',
-        #         'pass': 'admin',
-        #     },
-        #     'command': line[4],
-        #     'meters': [],
-        # }
+        temp_dict = EquipmentInExcel(uspd=temp_uspd, command=line[4], param_data=str(line[5]))
         result.append(temp_dict)
         count += 1
     print(f'{datetime.now()}: stop convert_sours_to_dict')
@@ -123,6 +111,7 @@ def init_set_task_start(
                         status_task='start',
                         timeouut_task=timeout_task[line_u.command],
                         group_task_id=group_task_id,
+                        param_data=line_u.param_data,
                     )
                 )
                 break
@@ -148,31 +137,22 @@ def get_continue_task(
                 if line_t.status_task == 'start':
                     timeout_for_task = line_t.update_on + timedelta(seconds=line_t.timeouut_task)
                     if timeout_for_task > datetime.now():
-                        # line_t.created_on = datetime.now()
-                        # line_t.update_on = datetime.now()
                         result['change_task'].append(
                             TaskModelUpdate(
                                 task_id=line_t.task_id,
                                 group_task_id=group_task_id,
                                 timeouut_task=line_t.timeouut_task,
-                                # created_on=datetime.now(),
-                                # update_on=datetime.now(),
                             )
                         )
                     trigger_e = 1
                     break
                 if line_t.status_task == 'false':
-                    # line_t.status_task = 'start'
-                    # line_t.created_on = datetime.now()
-                    # line_t.update_on = datetime.now()
                     result['change_task'].append(
                         TaskModelUpdate(
                             task_id=line_t.task_id,
                             group_task_id=group_task_id,
                             status_task='start',
                             timeouut_task=line_t.timeouut_task,
-                            # created_on=datetime.now(),
-                            # update_on=datetime.now(),
                         )
                     )
                     trigger_e = 1
@@ -187,8 +167,6 @@ def get_continue_task(
                                 group_task_id=group_task_id,
                                 status_task='start',
                                 timeouut_task=line_t.timeouut_task,
-                                # created_on=datetime.now(),
-                                # update_on=datetime.now(),
                             )
                         )
                     trigger_e = 1

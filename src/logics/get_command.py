@@ -72,7 +72,9 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
                                 count_break = 0
                                 for line_id in id_for_task:
                                     await sleep(1)
-                                    task_id = await hand_command(task_rb.type_task, con, token, line_id)
+                                    task_id = await hand_command(
+                                        task_rb.type_task, con, token, line_id, task_rb.param_data
+                                    )
                                     # task_id, meter_id, true/false/wait, status_hand, error
                                     list_task.append(
                                         ListTaskModel(
@@ -117,7 +119,7 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
             except Exception as ex:
                 result.error = str(ex.args)
         else:
-            print(2)
+            result.error = str(auth.error)
 
     end_time = datetime.now()
     delta = end_time - start_time
@@ -217,7 +219,26 @@ async def get_task(con: BaseRequest, token: str, data_payload: dict) -> TaskGetM
     return result
 
 
-async def hand_command(command: str, con: BaseRequest, token: str, param: str) -> TaskGetModel | None:
+async def set_task(con: BaseRequest, token: str, data_payload: dict) -> TaskGetModel | None:
+    """Функция делает запрос для формирования задачи на вычитку парамера по id ПУ"""
+    result = None
+    shedule_task = await con.post_request('set_meter_settings', token, data_payload)
+    try:
+        if shedule_task.status is True:
+            shedule_task.data = json.loads(shedule_task.data)
+
+            result = TaskGetModel(
+                status=True,
+                task_id=shedule_task.data['taskId'],
+            )
+        else:
+            result = TaskGetModel(status=False, error=str(shedule_task.error))
+    except Exception as ex:
+        result = TaskGetModel(status=False, error=str(ex.args))
+    return result
+
+
+async def hand_command(command: str, con: BaseRequest, token: str, param: str, paramData: str) -> TaskGetModel | None:
     """Фунеция по запуску запроса на вычитку параметра ПУ по типу команды"""
     if command == 'get_shedule':
         data_payload = {'devId': param, 'taskParam': 'SCHEDULE'}
@@ -230,6 +251,14 @@ async def hand_command(command: str, con: BaseRequest, token: str, param: str) -
     if command == 'get_tarif_mask':
         data_payload = {'devId': param, 'taskParam': 'TARIFF_MASK'}
         result = await get_task(con, token, data_payload)
+
+    if command == 'set_leave_time':
+        data_payload = {'devId': param, 'taskParam': 'LEAVE_TIME', 'paramData': [paramData]}
+        result = await set_task(con, token, data_payload)
+
+    if command == 'set_tarif_mask':
+        data_payload = {'devId': param, 'taskParam': 'TARIFF_MASK', 'paramData': [paramData]}
+        result = await set_task(con, token, data_payload)
 
     return result
 

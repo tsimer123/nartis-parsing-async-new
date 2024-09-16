@@ -18,3 +18,4 @@ class EquipmentInExcel(BaseModel):
     uspd: UspdEquipmentInExcel
     command: str
     meters: list = []
+    param_data: str | None = None

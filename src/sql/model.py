@@ -35,6 +35,7 @@ class TaskModelSet(BaseModel):
     status_task: str  # true/false/start
     meter_true: str | None = None
     timeouut_task: int
+    param_data: str | None = None
 
 
 class TaskModelGet(TaskModelSet):
@@ -53,6 +54,7 @@ class TaskEquipmentHandlerModelGet(TaskEquipmentModelGet):
     login: str
     passw: str
     time_zone: int
+    param_data: str | None = None
 
 
 class TaskModelUpdate(BaseModel):

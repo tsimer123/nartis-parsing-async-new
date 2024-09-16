@@ -90,6 +90,7 @@ class Task(Base):
     group_task_id: Mapped[int] = mapped_column(Integer, ForeignKey('group_task.group_task_id'))
     equipment_id: Mapped[int] = mapped_column(Integer, ForeignKey('equipment.equipment_id'))
     type_task: Mapped[str] = mapped_column(Text)
+    param_data: Mapped[str] = mapped_column(Text)
     status_task: Mapped[str] = mapped_column(Text)
     meter_true: Mapped[str | None] = mapped_column(Text)
     timeouut_task: Mapped[int] = mapped_column(Integer)

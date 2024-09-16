@@ -15,6 +15,8 @@ async def run_command(task_rb: TaskEquipmentHandlerModelGet):
         task_rb.type_task == 'get_shedule'
         or task_rb.type_task == 'get_leave_time'
         or task_rb.type_task == 'get_tarif_mask'
+        or task_rb.type_task == 'set_leave_time'
+        or task_rb.type_task == 'set_tarif_mask'
     ):
         result = await get_command(task_rb)
         await hand_result(result)
