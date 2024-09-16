@@ -262,6 +262,7 @@ async def init_get_task_equipment_for_handler(task: Task, time_zone: int) -> Tas
         login=task.equipment.login,
         passw=task.equipment.passw,
         time_zone=time_zone,
+        param_data=task.param_data,
     )
     return temp_uspd
 
