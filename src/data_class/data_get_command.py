@@ -50,6 +50,12 @@ class MeterWlModel(BaseModel):
     tariff_mask: str | None = None
     tariff_mask_status: str | None = None
     tariff_mask_date: datetime | None = None
+    fw_meter: str | None = None
+    fw_meter_status: str | None = None
+    fw_meter_date: datetime | None = None
+    board_ver: str | None = None
+    board_ver_status: str | None = None
+    board_ver_date: datetime | None = None
     task_log: TaskGetModel | None = None
     task_hand_log: ListTaskModel | None = None
 

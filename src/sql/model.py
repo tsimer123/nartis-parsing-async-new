@@ -110,6 +110,12 @@ class MeterHandModelSet(BaseModel):
     tariff_mask: int | None = None
     tariff_mask_status: str | None = None
     tariff_mask_date: datetime | None = None
+    fw_meter: str | None = None
+    fw_meter_status: str | None = None
+    fw_meter_date: datetime | None = None
+    board_ver: str | None = None
+    board_ver_status: str | None = None
+    board_ver_date: datetime | None = None
 
 
 class MeterHandModelGet(MeterHandModelSet):
@@ -134,6 +140,12 @@ class MeterModelUpdate(BaseModel):
     tariff_mask: int | None = None
     tariff_mask_status: str | None = None
     tariff_mask_date: datetime | None = None
+    fw_meter: str | None = None
+    fw_meter_status: str | None = None
+    fw_meter_date: datetime | None = None
+    board_ver: str | None = None
+    board_ver_status: str | None = None
+    board_ver_date: datetime | None = None
 
 
 class LogHandModelSet(BaseModel):
