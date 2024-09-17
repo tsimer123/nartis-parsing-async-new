@@ -58,6 +58,12 @@ class Meter(Base):
     tariff_mask: Mapped[int | None] = mapped_column(Text)
     tariff_mask_status: Mapped[str | None] = mapped_column(Text)
     tariff_mask_date: Mapped[datetime | None] = mapped_column(DateTime)
+    fw_meter: Mapped[int | None] = mapped_column(Text)
+    fw_meter_status: Mapped[str | None] = mapped_column(Text)
+    fw_meter_date: Mapped[datetime | None] = mapped_column(DateTime)
+    board_ver: Mapped[int | None] = mapped_column(Text)
+    board_ver_status: Mapped[str | None] = mapped_column(Text)
+    board_ver_date: Mapped[datetime | None] = mapped_column(DateTime)
     created_on: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     update_on: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
 

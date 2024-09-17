@@ -124,6 +124,12 @@ async def hand_meter(result_in: GetComandModel) -> dict[list[MeterHandModelSet],
                                 tariff_mask=line_mwl.tariff_mask,
                                 tariff_mask_date=line_mwl.tariff_mask_date,
                                 tariff_mask_status=line_mwl.tariff_mask_status,
+                                fw_meter=line_mwl.fw_meter,
+                                fw_meter_date=line_mwl.fw_meter_date,
+                                fw_meter_status=line_mwl.fw_meter_status,
+                                board_ver=line_mwl.board_ver,
+                                board_ver_date=line_mwl.board_ver_date,
+                                board_ver_status=line_mwl.board_ver_status,
                             )
                         )
                         trigger_meter_update = 1
@@ -146,6 +152,12 @@ async def hand_meter(result_in: GetComandModel) -> dict[list[MeterHandModelSet],
                         tariff_mask=line_mwl.tariff_mask,
                         tariff_mask_date=line_mwl.tariff_mask_date,
                         tariff_mask_status=line_mwl.tariff_mask_status,
+                        fw_meter=line_mwl.fw_meter,
+                        fw_meter_date=line_mwl.fw_meter_date,
+                        fw_meter_status=line_mwl.fw_meter_status,
+                        board_ver=line_mwl.board_ver,
+                        board_ver_date=line_mwl.board_ver_date,
+                        board_ver_status=line_mwl.board_ver_status,
                     )
                 )
     return dict_result

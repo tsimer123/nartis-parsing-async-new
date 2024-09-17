@@ -311,8 +311,8 @@ async def customer_generator_from_excel(queue: Queue, interval_t: float, type_st
         len_task = len(task)
         print(f'{datetime.now()}: из Excel получено заданий: {len_task}')
 
-        print(f'{datetime.now()}: размер очереди: {queue.qsize()}')
-        print(f'{datetime.now()}: проверка на пустое: {queue.empty()}')
+        # print(f'{datetime.now()}: размер очереди: {queue.qsize()}')
+        # print(f'{datetime.now()}: проверка на пустое: {queue.empty()}')
 
         if len(task) > 0:
             count_uqipment_q = 0
@@ -323,8 +323,8 @@ async def customer_generator_from_excel(queue: Queue, interval_t: float, type_st
             print(f'{datetime.now()}: Добавили {count_uqipment_q} УСПД в очередь')
         else:
             print(f'{datetime.now()}: Нет заданий для отработки')
-        print(f'{datetime.now()}: размер очереди: {queue.qsize()}')
-        print(f'{datetime.now()}: проверка на пустое: {queue.empty()}')
+        # print(f'{datetime.now()}: размер очереди: {queue.qsize()}')
+        # print(f'{datetime.now()}: проверка на пустое: {queue.empty()}')
         print(f'{datetime.now()}: stop iter customer_generator_from_excel')
         await asyncio.sleep(interval_t)
         counter_iter += 1

@@ -84,9 +84,9 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
                                     )
                                     # добавляем результат создание таски на УСПД в ПУ
                                     result = append_response_task_in_meter(result, line_id, task_id)
-                                    print(
-                                        f'Equipment {task_rb.serial_in_sourse}, task_in {task_rb.task_id} task {task_id.task_id}'
-                                    )
+                                    # print(
+                                    #     f'Equipment {task_rb.serial_in_sourse}, task_in {task_rb.task_id} task {task_id.task_id}'
+                                    # )
                                     # if count_break > 9:
                                     #     break
                                     count_break += 1
@@ -266,6 +266,10 @@ async def hand_command(command: str, con: BaseRequest, token: str, param: str, p
         data_payload = {'devId': param, 'taskParam': 'SCHEDULE', 'paramData': paramData}
         result = await set_task(con, token, data_payload)
 
+    if command == 'get_fw_meter':
+        data_payload = {'devId': param, 'taskParam': 'VERSION'}
+        result = await get_task(con, token, data_payload)
+
     return result
 
 
@@ -327,7 +331,7 @@ async def get_meter_data(list_task: list[ListTaskModel], con: BaseRequest, token
             for i in range(1, 3, 1):
                 meter_param = await get_task_result(con, token, params)
                 if meter_param.status is True:
-                    print(f'Длина meter_param.data: {len(meter_param.data)}')
+                    # print(f'Длина meter_param.data: {len(meter_param.data)}')
                     if meter_param.data is not None:
                         # print(meter_param['data'])
                         list_task[count_t].response = meter_param.data

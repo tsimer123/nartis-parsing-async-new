@@ -15,10 +15,19 @@ timeout_task = {
     'set_leave_time': 1800,
     'set_tarif_mask': 1800,
     'set_shedule': 1800,
+    'get_fw_meter': 1800,
 }
 
 # перечень команд для функции get_command
-list_command = ['get_shedule', 'get_leave_time', 'get_tarif_mask', 'set_leave_time', 'set_tarif_mask', 'set_shedule']
+list_command = [
+    'get_shedule',
+    'get_leave_time',
+    'get_tarif_mask',
+    'set_leave_time',
+    'set_tarif_mask',
+    'set_shedule',
+    'get_fw_meter',
+]
 
 # перечень возможных параметров для устаровки планировзика
 list_shedule_param = ['archive daily', 'quality', 'load profile', 'no']
