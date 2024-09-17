@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from sqlalchemy import insert, select, update
 
@@ -83,13 +84,14 @@ async def set_equipment(equipment: list[EquipmentModelSet]) -> None:
 async def set_task(task: list[TaskModelSet]) -> None:
     session = [session async for session in get_async_session()][0]
     try:
-        stmt = insert(Task).values([line_t.model_dump(exclude_none=True) for line_t in task])
+        stmt = insert(Task).values([line_t.model_dump(exclude_unset=True) for line_t in task])
 
         await session.execute(stmt)
         await session.commit()
         await session.close()
     except Exception as ex:
         print(ex.args)
+    await session.close()
 
 
 async def get_task_equipment_filter(equipment_id: list[int]) -> list[TaskEquipmentModelGet]:
@@ -194,7 +196,7 @@ async def update_data_after_hand(
         await session.commit()
     except Exception as ex:
         await session.rollback()
-        print(ex.args)
+        print(f'{datetime.now()}: ---------- Ошибка записи в БД сервиса: {ex.args}')
     await session.close()
 
 

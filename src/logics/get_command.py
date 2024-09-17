@@ -1,4 +1,5 @@
 import json
+import re
 from asyncio import sleep
 from datetime import datetime
 
@@ -186,7 +187,10 @@ def get_meters_for_task(meter_true: str, meters_wl: list[MeterWlModel]) -> list[
     result = None
     if meter_true is not None:
         list_meters_true = set(meter_true.split(','))
-        meter_wl_id = set([line.eui for line in meters_wl])
+        for line in meters_wl:
+            a = re.search('[ABCDEFabcdef]', line.eui)
+
+        meter_wl_id = set([line.eui for line in meters_wl if re.search('[ABCDEFabcdef]', line.eui) is not None])
         dif_eui = meter_wl_id - list_meters_true
         dif_eui = list(dif_eui)
         result = []
@@ -258,6 +262,11 @@ async def hand_command(command: str, con: BaseRequest, token: str, param: str, p
 
     if command == 'set_tarif_mask':
         data_payload = {'devId': param, 'taskParam': 'TARIFF_MASK', 'paramData': [paramData]}
+        result = await set_task(con, token, data_payload)
+
+    if command == 'set_shedule':
+        paramData = paramData.split(',')
+        data_payload = {'devId': param, 'taskParam': 'SCHEDULE', 'paramData': paramData}
         result = await set_task(con, token, data_payload)
 
     return result

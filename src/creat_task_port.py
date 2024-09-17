@@ -3,7 +3,7 @@ from asyncio import Queue
 from datetime import datetime, timedelta
 
 # from handler_commands import run_command
-from config import time_restart_true_task, timeout_task
+from config import list_command, list_shedule_param, time_restart_true_task, timeout_task
 from data_class.data_equipment import EquipmentInExcel, UspdEquipmentInExcel
 from db_handler import (
     get_equipment_filter,
@@ -39,13 +39,41 @@ def clear_sourse_uspd(uspd: list[list]) -> list[list]:
     return uspd
 
 
+def valid_сcommand_param(uspd: list[list]) -> None:
+    print(f'{datetime.now()}: start command_valid_param')
+    set_shedule_param = set(list_shedule_param)
+    for line in uspd:
+        # проверка правильность записи команды
+        if line[4] in list_command:
+            # проверка параметров для команды set_shedule
+            if line[4] == 'set_shedule':
+                paramData = str(line[5]).split(',')
+                if len(paramData) == 4:
+                    paramDataSet: set = set(paramData)
+                    if paramDataSet.issubset(set_shedule_param) is False:
+                        raise Exception(f'Не правильные параметры комады set_shedule для УСПД {line[0]}')
+                else:
+                    raise Exception(
+                        f'Количество параметров для комады set_shedule для УСПД {line[0]} не раврно 4 {paramData}'
+                    )
+        else:
+            raise Exception(f'Неизвестная команда {line[4]}')
+
+    print(f'{datetime.now()}: stop convert_sours_to_dict')
+
+
 def convert_sours_to_dict(uspd: list[list]) -> list[EquipmentInExcel]:
     print(f'{datetime.now()}: start convert_sours_to_dict')
     result = []
     count = 1
     for line in uspd:
         temp_uspd = UspdEquipmentInExcel(name=str(line[0]), ip1=line[1], ip2=line[2])
-        temp_dict = EquipmentInExcel(uspd=temp_uspd, command=line[4], param_data=str(line[5]))
+        if len(line) < 6:
+            param_data = None
+        else:
+            param_data = None if line[5] is None else str(line[5])
+        # param_data = None if len(line) < 6 else str(line[5])
+        temp_dict = EquipmentInExcel(uspd=temp_uspd, command=line[4], param_data=param_data)
         result.append(temp_dict)
         count += 1
     print(f'{datetime.now()}: stop convert_sours_to_dict')
@@ -208,9 +236,11 @@ async def get_task(
 ) -> list[TaskEquipmentHandlerModelGet]:
     print(f'{datetime.now()}: start get_task_from_excel')
     # получаем из excel файла задания  (УСПД с командой)
-    excel_data = open_excel('host.xlsx')
+    data = open_excel('host.xlsx')
     # убираем None если нет второго ip
-    data = clear_sourse_uspd(excel_data)
+    # data = clear_sourse_uspd(excel_data)
+    # првоерям правильность записи команд в excel
+    valid_сcommand_param(data)
     # преобразовываем список в список классов pydantic (удобно сериализовать в sqlalchemy)
     data = convert_sours_to_dict(data)
     # получаем списосок имен УСПД из Excel
