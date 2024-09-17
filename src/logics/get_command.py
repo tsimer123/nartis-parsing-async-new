@@ -187,9 +187,6 @@ def get_meters_for_task(meter_true: str, meters_wl: list[MeterWlModel]) -> list[
     result = None
     if meter_true is not None:
         list_meters_true = set(meter_true.split(','))
-        for line in meters_wl:
-            a = re.search('[ABCDEFabcdef]', line.eui)
-
         meter_wl_id = set([line.eui for line in meters_wl if re.search('[ABCDEFabcdef]', line.eui) is not None])
         dif_eui = meter_wl_id - list_meters_true
         dif_eui = list(dif_eui)
