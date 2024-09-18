@@ -1,4 +1,6 @@
 /env/
+*/dist/
+*/build/
 /.vscode/
 /__pycache__/
 */__pycache__/
@@ -10,7 +12,4 @@
 *.db
 /src/test.py
 /src/test2.py
-
-
-
-
+*.spec

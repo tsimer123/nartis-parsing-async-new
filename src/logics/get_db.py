@@ -14,6 +14,8 @@ async def get_db_task(ip: str, port: str = '5432') -> GetDbTaskModel:
             uspd.task = []
             for line in tasks:
                 temp_dict = dict(line)
+                if temp_dict['status'] is None:
+                    temp_dict['status'] = 3
                 uspd.task.append(
                     TaskFromDbkModel(
                         task_id=temp_dict['id'], meter_id=temp_dict['meter_id'], status_task=temp_dict['status']
