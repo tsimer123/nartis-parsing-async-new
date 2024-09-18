@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timedelta
 
-from data_class.data_get_command import ListTaskModel, MeterWlModel
+from data_class.data_get_command import MeterWlModel
 
 
 def parser_response(meter: MeterWlModel, type_task: str, time_zone: int) -> MeterWlModel:
@@ -13,10 +13,14 @@ def parser_response(meter: MeterWlModel, type_task: str, time_zone: int) -> Mete
         meter = parser_response_get_tarif_mask(meter, time_zone)
     if type_task == 'get_fw_meter':
         meter = parser_response_get_fw_meter(meter, time_zone)
+    if type_task == 'set_shedule':
+        meter = parser_response_set_shedule(meter)
+    if type_task == 'set_tarif_mask':
+        meter = parser_response_set_tarif_mask(meter)
     return meter
 
 
-def parser_response_get_shedule(meter: MeterWlModel, time_zone: int) -> ListTaskModel:
+def parser_response_get_shedule(meter: MeterWlModel, time_zone: int) -> MeterWlModel:
     """парсим результат запроса планировщка для формирования записи в БД"""
     try:
         if meter.task_hand_log.response is not None:
@@ -79,7 +83,7 @@ def parse_task_shed(str_task: str) -> dict | bool:
     return task_dict
 
 
-def parser_response_get_tarif_mask(meter: MeterWlModel, time_zone: int) -> ListTaskModel:
+def parser_response_get_tarif_mask(meter: MeterWlModel, time_zone: int) -> MeterWlModel:
     """парсим результат запроса тарифной маски для формирования записи в БД"""
     if meter.task_hand_log.response is not None:
         if 'tariff_mask' in meter.task_hand_log.response:
@@ -97,7 +101,7 @@ def parser_response_get_tarif_mask(meter: MeterWlModel, time_zone: int) -> ListT
     return meter
 
 
-def parser_response_get_leave_time(meter: MeterWlModel, time_zone: int) -> ListTaskModel:
+def parser_response_get_leave_time(meter: MeterWlModel, time_zone: int) -> MeterWlModel:
     """парсим результат запроса времени выыхода из сети для формирования записи в БД"""
     if meter.task_hand_log.response is not None:
         if 'leave_time' in meter.task_hand_log.response:
@@ -115,7 +119,7 @@ def parser_response_get_leave_time(meter: MeterWlModel, time_zone: int) -> ListT
     return meter
 
 
-def parser_response_get_fw_meter(meter: MeterWlModel, time_zone: int) -> ListTaskModel:
+def parser_response_get_fw_meter(meter: MeterWlModel, time_zone: int) -> MeterWlModel:
     if meter.task_hand_log.response is not None:
         if 'version' in meter.task_hand_log.response:
             if meter.task_hand_log.response['version'] is not None:
@@ -171,6 +175,32 @@ def split_meter_board_vers(version: str) -> dict | None:
             return dict_version
         else:
             return None
+
+
+def parser_response_set_shedule(meter: MeterWlModel) -> MeterWlModel:
+    """парсим результат устанолвки планировщика для формирования записи в БД"""
+    if meter.task_hand_log.response is not None:
+        if meter.task_hand_log.status_task_db == 'true':
+            meter.set_schedule_date = datetime.now()
+            meter.set_schedule_status = 'valid'
+        else:
+            meter.set_schedule_status = 'invalid'
+    else:
+        meter.set_schedule_status = 'invalid'
+    return meter
+
+
+def parser_response_set_tarif_mask(meter: MeterWlModel) -> MeterWlModel:
+    """парсим результат устанолвки планировщика для формирования записи в БД"""
+    if meter.task_hand_log.response is not None:
+        if meter.task_hand_log.status_task_db == 'true':
+            meter.set_tariff_mask_date = datetime.now()
+            meter.set_tariff_mask_status = 'valid'
+        else:
+            meter.set_tariff_mask_status = 'invalid'
+    else:
+        meter.set_tariff_mask_status = 'invalid'
+    return meter
 
 
 def str_to_date(date_res: str) -> datetime:

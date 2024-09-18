@@ -44,12 +44,16 @@ class MeterWlModel(BaseModel):
     schedule: str | None = None
     schedule_status: str | None = None
     schedule_date: datetime | None = None
+    set_schedule_status: str | None = None
+    set_schedule_date: datetime | None = None
     leave_time: str | None = None
     leave_time_status: str | None = None
     leave_time_date: datetime | None = None
     tariff_mask: str | None = None
     tariff_mask_status: str | None = None
     tariff_mask_date: datetime | None = None
+    set_tariff_mask_status: str | None = None
+    set_tariff_mask_date: datetime | None = None
     fw_meter: str | None = None
     fw_meter_status: str | None = None
     fw_meter_date: datetime | None = None

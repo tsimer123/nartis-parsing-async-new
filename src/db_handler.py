@@ -16,6 +16,7 @@ from sql.model import (
     TaskEquipmentHandlerModelGet,
     TaskEquipmentModelGet,
     TaskHandModelUpdate,
+    TaskMeterTrueModelUpdate,
     TaskModelGet,
     TaskModelSet,
     TaskModelUpdate,
@@ -197,6 +198,18 @@ async def update_data_after_hand(
     except Exception as ex:
         await session.rollback()
         print(f'{datetime.now()}: ---------- Ошибка записи в БД сервиса: {ex.args}')
+    await session.close()
+
+
+async def update_task_meter_true(task: TaskMeterTrueModelUpdate) -> None:
+    data_update = [task.model_dump()]
+
+    session = [session async for session in get_async_session()][0]
+
+    stmt = update(Task)
+    # print(stmt)
+    await session.execute(stmt, data_update)
+    await session.commit()
     await session.close()
 
 

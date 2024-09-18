@@ -2,13 +2,14 @@ from datetime import datetime
 
 from config import timeout_task
 from data_class.data_get_command import GetComandModel
-from db_handler import get_meter_filter, update_data_after_hand
+from db_handler import get_meter_filter, update_data_after_hand, update_task_meter_true
 from sql.model import (
     EquipmentHandModelUpdate,
     LogHandModelSet,
     MeterHandModelSet,
     MeterModelUpdate,
     TaskHandModelUpdate,
+    TaskMeterTrueModelUpdate,
 )
 
 
@@ -30,14 +31,16 @@ async def hand_result(result_in: GetComandModel):
     print(f'{datetime.now()}: stop write data for task {result_in.task_id}, , total time {total_time}')
 
 
-def get_str_eui_hand(result_in: GetComandModel, meter) -> str:
+def get_str_eui_hand(result_in: GetComandModel, meter: str) -> str:
+    """функция добавляет новые meter_true к уже существующим meter_true с проверкой начилия ПУ в БС"""
     for line in result_in.meter_wl.meter_wl:
         if line.task_hand_log is not None and line.task_hand_log.status_task_db == 'true':
             meter = meter + line.eui + ','
     return meter
 
 
-def get_str_eui_meter(result_in: GetComandModel, meter) -> str:
+def get_str_eui_meter(result_in: GetComandModel, meter: str) -> str:
+    """функция добавляет новые meter_true к уже существующим meter_true БЕЗ проверкой начилия ПУ в БС"""
     for line in result_in.meter_wl.meter_wl:
         meter = meter + line.eui + ','
     return meter
@@ -118,12 +121,16 @@ async def hand_meter(result_in: GetComandModel) -> dict[list[MeterHandModelSet],
                                 schedule=shedule,
                                 schedule_date=line_mwl.schedule_date,
                                 schedule_status=line_mwl.schedule_status,
+                                set_schedule_status=line_mwl.set_schedule_status,
+                                set_schedule_date=line_mwl.set_schedule_date,
                                 leave_time=line_mwl.leave_time,
                                 leave_time_date=line_mwl.leave_time_date,
                                 leave_time_status=line_mwl.leave_time_status,
                                 tariff_mask=line_mwl.tariff_mask,
                                 tariff_mask_date=line_mwl.tariff_mask_date,
                                 tariff_mask_status=line_mwl.tariff_mask_status,
+                                set_tariff_mask_status=line_mwl.set_tariff_mask_status,
+                                set_tariff_mask_date=line_mwl.set_tariff_mask_date,
                                 fw_meter=line_mwl.fw_meter,
                                 fw_meter_date=line_mwl.fw_meter_date,
                                 fw_meter_status=line_mwl.fw_meter_status,
@@ -146,12 +153,16 @@ async def hand_meter(result_in: GetComandModel) -> dict[list[MeterHandModelSet],
                         schedule=shedule,
                         schedule_date=line_mwl.schedule_date,
                         schedule_status=line_mwl.schedule_status,
+                        set_schedule_status=line_mwl.set_schedule_status,
+                        set_schedule_date=line_mwl.set_schedule_date,
                         leave_time=line_mwl.leave_time,
                         leave_time_date=line_mwl.leave_time_date,
                         leave_time_status=line_mwl.leave_time_status,
                         tariff_mask=line_mwl.tariff_mask,
                         tariff_mask_date=line_mwl.tariff_mask_date,
                         tariff_mask_status=line_mwl.tariff_mask_status,
+                        set_tariff_mask_status=line_mwl.set_tariff_mask_status,
+                        set_tariff_mask_date=line_mwl.set_tariff_mask_date,
                         fw_meter=line_mwl.fw_meter,
                         fw_meter_date=line_mwl.fw_meter_date,
                         fw_meter_status=line_mwl.fw_meter_status,
@@ -192,5 +203,18 @@ def hand_log(result_in: GetComandModel) -> LogHandModelSet:
         status_response=status_response,
         response=str(list_response),
     )
+
+    return result
+
+
+async def update_true_meter(result_in: GetComandModel, meter_true: list[str]) -> TaskMeterTrueModelUpdate:
+    """Обновление true_meter для команд отработавших несколько раз config.list_comannds_repeat"""
+    meter_true = ','.join(meter_true) + ','
+    result = TaskMeterTrueModelUpdate(
+        task_id=result_in.task_id,
+        meter_true=meter_true,
+    )
+
+    await update_task_meter_true(result)
 
     return result
