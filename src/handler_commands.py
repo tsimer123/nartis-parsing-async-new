@@ -24,9 +24,10 @@ async def run_command(task_rb: TaskEquipmentHandlerModelGet):
                 print(
                     f'{datetime.now()}: stop iter set run_command for task {task_rb.task_id}, equipment {task_rb.serial_in_sourse}, command: {task_rb.type_task}'
                 )
-                meter_true = get_str_eui_hand(result, meter_true)
+                if result.meter_wl is not None and result.meter_wl.meter_wl is not None:
+                    meter_true = get_str_eui_hand(result, meter_true)
             count_repeat += 1
-        if repeat > 1:
+        if repeat > 1 and result.meter_wl is not None and result.meter_wl.meter_wl is not None:
             meter_true = list(set(meter_true.strip(',').split(',')))
             await update_true_meter(task_rb, meter_true)
         print(
