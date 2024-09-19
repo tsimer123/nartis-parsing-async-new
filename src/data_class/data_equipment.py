@@ -1,12 +1,13 @@
 from pydantic import BaseModel, ConfigDict
+from pydantic.networks import IPvAnyAddress
 
 
 class UspdEquipmentInExcel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     name: str
-    ip1: str
-    ip2: str | None = None
+    ip1: IPvAnyAddress
+    ip2: IPvAnyAddress | None = None
     login: str = 'admin'
     passw: str = 'admin'
 

@@ -119,7 +119,13 @@ def init_set_uspd(equipment: list[EquipmentInExcel]) -> list[EquipmentModelSet]:
                 trigger_e = 1
                 break
         if trigger_e == 0:
-            result.append(EquipmentModelSet(serial_in_sourse=line.uspd.name, ip1=line.uspd.ip1, ip2=line.uspd.ip2))
+            result.append(
+                EquipmentModelSet(
+                    serial_in_sourse=line.uspd.name,
+                    ip1=str(line.uspd.ip1),
+                    ip2=str(line.uspd.ip2) if line.uspd.ip2 is not None else None,
+                )
+            )
 
     return result
 

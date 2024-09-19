@@ -12,9 +12,9 @@ timeout_task = {
     'get_shedule': 1800,
     'get_leave_time': 1800,
     'get_tarif_mask': 1800,
-    'set_leave_time': 1800,
-    'set_tarif_mask': 1800,
-    'set_shedule': 1800,
+    'set_leave_time': 3600,
+    'set_tarif_mask': 3600,
+    'set_shedule': 3600,
     'get_fw_meter': 1800,
 }
 
@@ -44,10 +44,10 @@ count_repeat_conf = 4
 list_shedule_param = ['archive daily', 'quality', 'load profile', 'no']
 
 # интервал между запросами к БД при ожидании выполнения task
-time_sleep_shedul_get_db = 10
+time_sleep_shedul_get_db = 20
 
 # интервал актуальности true task
-time_restart_true_task = 259200
+time_restart_true_task = 43200
 
 # имя БД
 db_name = 'sqlite_python_alchemy.db'
