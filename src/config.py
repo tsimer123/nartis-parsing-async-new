@@ -16,6 +16,8 @@ timeout_task = {
     'set_tarif_mask': 3600,
     'set_shedule': 3600,
     'get_fw_meter': 1800,
+    'get_set_tarif_mask': 1800,
+    'get_set_shedule': 1800,
 }
 
 # перечень команд для функции get_command
@@ -44,7 +46,7 @@ count_repeat_conf = 4
 list_shedule_param = ['archive daily', 'quality', 'load profile', 'no']
 
 # интервал между запросами к БД при ожидании выполнения task
-time_sleep_shedul_get_db = 20
+time_sleep_shedul_get_db = 10
 
 # интервал актуальности true task
 time_restart_true_task = 43200

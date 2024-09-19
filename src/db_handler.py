@@ -20,6 +20,7 @@ from sql.model import (
     TaskModelGet,
     TaskModelSet,
     TaskModelUpdate,
+    TaskSubTaskModelGet,
 )
 from sql.scheme import Equipment, GroupTask, LogEquipment, Meter, Task, create_db
 
@@ -213,6 +214,42 @@ async def update_task_meter_true(task: TaskMeterTrueModelUpdate) -> None:
     await session.close()
 
 
+async def get_task_filter_sub_task(sub_task_id: int) -> list[TaskSubTaskModelGet]:
+    """получение Тасок из БД по sub_task_id"""
+    stmt = select(Task).where(Task.sub_task_task_id == sub_task_id).order_by(Task.task_id)
+
+    session = [session async for session in get_async_session()][0]
+
+    result = await session.execute(stmt)
+
+    task_id = []
+
+    for line in result.scalars():
+        task_id.append(await init_get_task_sub_task(line))
+
+    await session.close()
+
+    return task_id
+
+
+async def get_meter_filter_equipment(equipment_id: int) -> list[MeterHandModelGet]:
+    """получение всех ПУ из БД по EUI"""
+    stmt = select(Meter).where(Meter.equipment_id == equipment_id)
+
+    session = [session async for session in get_async_session()][0]
+
+    result = await session.execute(stmt)
+
+    uspd_get = []
+
+    for a in result.scalars():
+        uspd_get.append(init_get_meter(a))
+
+    await session.close()
+
+    return uspd_get
+
+
 def init_get_uspd(uspd: Equipment) -> EquipmentModelGet:
     temp_uspd = EquipmentModelGet(
         equipment_id=uspd.equipment_id,
@@ -301,3 +338,21 @@ def init_get_meter(meter: Meter) -> MeterHandModelGet:
         tariff_mask_date=meter.tariff_mask_date,
     )
     return temp_meter
+
+
+async def init_get_task_sub_task(task: Task) -> TaskSubTaskModelGet:
+    temp_uspd = TaskSubTaskModelGet(
+        task_id=task.task_id,
+        group_task_id=task.task_id,
+        sub_task_task_id=task.sub_task_task_id,
+        equipment_id=task.equipment_id,
+        type_task=task.type_task,
+        status_task=task.status_task,
+        meter_true=task.meter_true,
+        timeouut_task=task.timeouut_task,
+        param_data=task.param_data,
+        total_time=task.total_time,
+        created_on=task.created_on,
+        update_on=task.update_on,
+    )
+    return temp_uspd

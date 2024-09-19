@@ -4,11 +4,13 @@ from config import count_repeat_conf, list_comannds_repeat, list_command
 from data_class.data_get_command import GetComandModel
 from handlers.handler_get_command import hand_result, update_true_meter
 from logics.get_command import get_command
+from logics.set_command import get_after_set
 from sql.model import TaskEquipmentHandlerModelGet
 
 
 async def run_command(task_rb: TaskEquipmentHandlerModelGet):
     result = {'status': False}
+    await get_after_set(task_rb)
     print(
         f'{datetime.now()}: start run_command for task {task_rb.task_id}, equipment {task_rb.serial_in_sourse}, command: {task_rb.type_task}'
     )
