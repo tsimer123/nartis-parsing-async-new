@@ -44,8 +44,7 @@ async def run_command(task_rb: TaskEquipmentHandlerModelGet):
         )
 
 
-def 
-(result_in: GetComandModel, meter: str) -> str:
+def get_str_eui_hand(result_in: GetComandModel, meter: str) -> str:
     """функция добавляет новые meter_true к уже существующим meter_true с проверкой начилия ПУ в БС"""
     for line in result_in.meter_wl.meter_wl:
         if line.task_hand_log is not None and line.task_hand_log.status_task_db == 'true':
