@@ -5,11 +5,11 @@ from data_class.data_get_command import MeterWlModel
 
 
 def parser_response(meter: MeterWlModel, type_task: str, time_zone: int) -> MeterWlModel:
-    if type_task == 'get_shedule':
+    if type_task == 'get_shedule' or type_task == 'get_set_shedule':
         meter = parser_response_get_shedule(meter, time_zone)
     if type_task == 'get_leave_time' or type_task == 'set_leave_time':
         meter = parser_response_get_leave_time(meter, time_zone)
-    if type_task == 'get_tarif_mask':
+    if type_task == 'get_tarif_mask' or type_task == 'get_set_tarif_mask':
         meter = parser_response_get_tarif_mask(meter, time_zone)
     if type_task == 'get_fw_meter':
         meter = parser_response_get_fw_meter(meter, time_zone)

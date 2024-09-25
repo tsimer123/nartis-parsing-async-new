@@ -16,6 +16,8 @@ timeout_task = {
     'set_tarif_mask': 3600,
     'set_shedule': 3600,
     'get_fw_meter': 1800,
+    'get_set_tarif_mask': 1800,
+    'get_set_shedule': 1800,
 }
 
 # перечень команд для функции get_command
@@ -38,7 +40,8 @@ list_comannds_repeat = [
     'set_shedule',
 ]
 
-count_repeat_conf = 4
+# количество повторов для list_comannds_repeat + 1, по умолчанию 5
+count_repeat_conf = 5
 
 # перечень возможных параметров для устаровки планировзика
 list_shedule_param = ['archive daily', 'quality', 'load profile', 'no']

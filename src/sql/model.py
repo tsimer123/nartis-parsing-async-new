@@ -38,10 +38,21 @@ class TaskModelSet(BaseModel):
     param_data: str | None = None
 
 
+class SubTaskModelSet(TaskModelSet):
+    model_config = ConfigDict(from_attributes=True)
+
+    sub_task_task_id: int
+
+
 class TaskModelGet(TaskModelSet):
     task_id: int
     created_on: datetime
     update_on: datetime
+
+
+class TaskSubTaskModelGet(TaskModelGet):
+    sub_task_task_id: int
+    total_time: int | None = None
 
 
 class TaskEquipmentModelGet(TaskModelGet):
@@ -61,7 +72,7 @@ class TaskModelUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     task_id: int
-    group_task_id: int
+    group_task_id: int | None = None
     type_task: str | None = None
     status_task: str | None = None
     meter_true: str | None = None

@@ -97,6 +97,7 @@ class Task(Base):
     __tablename__ = 'task'
 
     task_id: Mapped[int] = mapped_column(primary_key=True)
+    sub_task_task_id: Mapped[int | None] = mapped_column(Integer)
     group_task_id: Mapped[int] = mapped_column(Integer, ForeignKey('group_task.group_task_id'))
     equipment_id: Mapped[int] = mapped_column(Integer, ForeignKey('equipment.equipment_id'))
     type_task: Mapped[str] = mapped_column(Text)

@@ -59,6 +59,9 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
             token = auth.data
             try:
                 # полуячаем данные по УСПД
+                timezone = await get_tzcode(con, token)
+                if timezone is not None:
+                    task_rb.time_zone = timezone
                 result.equipment_info = await get_dev_info(con, token)
                 # получаем БС из УСПД
                 result.meter_wl = await get_wl(con, token)
@@ -155,6 +158,21 @@ async def get_dev_info(con: BaseRequest, token: str) -> EquipmentInfoModel | Non
     return result
 
 
+async def get_tzcode(con: BaseRequest, token: str) -> int | None:
+    """Функция запрапшивает часовой пояс УСПД, если вернет None, то это не штатная ситуация"""
+    result = None
+    tzcode = await con.get_request('tzcode', token)
+    try:
+        if tzcode.status is True:
+            tzcode.data = json.loads(tzcode.data)
+            result = tzcode.data['timezone']
+        else:
+            result = None
+    except:
+        result = None
+    return result
+
+
 async def get_wl(con: BaseRequest, token: str) -> MeterWlAllModel | None:
     """Функция запропшивает ПУ из БС, если вернет None, то это не штатная ситуация"""
     result = None
@@ -187,7 +205,13 @@ def get_meters_for_task(meter_true: str, meters_wl: list[MeterWlModel]) -> list[
     result = None
     if meter_true is not None:
         list_meters_true = set(meter_true.split(','))
-        meter_wl_id = set([line.eui for line in meters_wl if re.search('[ABCDEFabcdef]', line.eui) is not None])
+        meter_wl_id = set(
+            [
+                line.eui
+                for line in meters_wl
+                if re.search('[ABCDEFabcdef]', line.eui) is not None and line.archive is False
+            ]
+        )
         dif_eui = meter_wl_id - list_meters_true
         dif_eui = list(dif_eui)
         result = []
@@ -241,7 +265,7 @@ async def set_task(con: BaseRequest, token: str, data_payload: dict) -> TaskGetM
 
 async def hand_command(command: str, con: BaseRequest, token: str, param: str, paramData: str) -> TaskGetModel | None:
     """Фунеция по запуску запроса на вычитку параметра ПУ по типу команды"""
-    if command == 'get_shedule':
+    if command == 'get_shedule' or command == 'get_set_shedule':
         data_payload = {'devId': param, 'taskParam': 'SCHEDULE'}
         result = await get_task(con, token, data_payload)
 
@@ -249,7 +273,7 @@ async def hand_command(command: str, con: BaseRequest, token: str, param: str, p
         data_payload = {'devId': param, 'taskParam': 'LEAVE_TIME'}
         result = await get_task(con, token, data_payload)
 
-    if command == 'get_tarif_mask':
+    if command == 'get_tarif_mask' or command == 'get_set_tarif_mask':
         data_payload = {'devId': param, 'taskParam': 'TARIFF_MASK'}
         result = await get_task(con, token, data_payload)
 
