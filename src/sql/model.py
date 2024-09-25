@@ -72,7 +72,7 @@ class TaskModelUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     task_id: int
-    group_task_id: int
+    group_task_id: int | None = None
     type_task: str | None = None
     status_task: str | None = None
     meter_true: str | None = None

@@ -16,16 +16,21 @@ async def get_db_task(ip: str, port: str = '5432') -> GetDbTaskModel:
                 temp_dict = dict(line)
                 if temp_dict['status'] is None:
                     temp_dict['status'] = 3
-                uspd.task.append(
-                    TaskFromDbkModel(
-                        task_id=temp_dict['id'], meter_id=temp_dict['meter_id'], status_task=temp_dict['status']
+                if (
+                    temp_dict['status'] is not None
+                    and temp_dict['id'] is not None
+                    and temp_dict['meter_id'] is not None
+                ):
+                    uspd.task.append(
+                        TaskFromDbkModel(
+                            task_id=temp_dict['id'], meter_id=temp_dict['meter_id'], status_task=temp_dict['status']
+                        )
                     )
-                )
         uspd.status = True
         await conn.close()
     except Exception as ex:
         str_error = f'Host: {ip}:{port}, text ex: {str(ex.args)}'
-        print(str_error)
+        print(ex)
         uspd.error = str_error
 
     return uspd

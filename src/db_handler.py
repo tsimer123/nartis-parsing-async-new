@@ -13,6 +13,7 @@ from sql.model import (
     MeterHandModelGet,
     MeterHandModelSet,
     MeterModelUpdate,
+    SubTaskModelSet,
     TaskEquipmentHandlerModelGet,
     TaskEquipmentModelGet,
     TaskHandModelUpdate,
@@ -250,6 +251,41 @@ async def get_meter_filter_equipment(equipment_id: int) -> list[MeterHandModelGe
     return uspd_get
 
 
+async def set_one_task_return_id(task: SubTaskModelSet) -> int:
+    stmt = insert(Task).values(task.model_dump(exclude_unset=True)).returning(Task.task_id)
+
+    session = [session async for session in get_async_session()][0]
+
+    result = await session.execute(stmt)
+    await session.commit()
+
+    group_task_id = None
+    for line in result.scalars():
+        group_task_id = line
+        break
+
+    await session.close()
+
+    return group_task_id
+
+
+async def get_task_filter_task(task_id: int, time_zone: int) -> list[TaskEquipmentHandlerModelGet]:
+    """получение всех task из БД по equipment_id"""
+    stmt = select(Task, Equipment).join(Task.equipment).where(Task.task_id == task_id)
+
+    session = [session async for session in get_async_session()][0]
+
+    result = await session.execute(stmt)
+
+    task_get = []
+
+    for line in result.scalars():
+        task_get.append(await init_get_task_equipment_for_handler(line, time_zone))
+    await session.close()
+
+    return task_get
+
+
 def init_get_uspd(uspd: Equipment) -> EquipmentModelGet:
     temp_uspd = EquipmentModelGet(
         equipment_id=uspd.equipment_id,
@@ -299,7 +335,7 @@ def init_get_task_equipment(task: Task) -> TaskEquipmentModelGet:
 
 async def init_get_task_equipment_for_handler(task: Task, time_zone: int) -> TaskEquipmentHandlerModelGet:
     temp_uspd = TaskEquipmentHandlerModelGet(
-        group_task_id=task.task_id,
+        group_task_id=task.group_task_id,
         task_id=task.task_id,
         equipment_id=task.equipment_id,
         type_task=task.type_task,
@@ -330,12 +366,22 @@ def init_get_meter(meter: Meter) -> MeterHandModelGet:
         schedule=meter.schedule,
         schedule_status=meter.schedule_status,
         schedule_date=meter.schedule_date,
+        set_schedule_status=meter.set_schedule_status,
+        set_schedule_date=meter.set_schedule_date,
         leave_time=meter.leave_time,
         leave_time_status=meter.leave_time_status,
         leave_time_date=meter.leave_time_date,
         tariff_mask=meter.tariff_mask,
         tariff_mask_status=meter.tariff_mask_status,
         tariff_mask_date=meter.tariff_mask_date,
+        set_tariff_mask_status=meter.set_tariff_mask_status,
+        set_tariff_mask_date=meter.set_tariff_mask_date,
+        fw_meter=meter.fw_meter,
+        fw_meter_status=meter.fw_meter_status,
+        fw_meter_date=meter.fw_meter_date,
+        board_ver=meter.board_ver,
+        board_ver_status=meter.board_ver_status,
+        board_ver_date=meter.board_ver_date,
     )
     return temp_meter
 
@@ -343,7 +389,7 @@ def init_get_meter(meter: Meter) -> MeterHandModelGet:
 async def init_get_task_sub_task(task: Task) -> TaskSubTaskModelGet:
     temp_uspd = TaskSubTaskModelGet(
         task_id=task.task_id,
-        group_task_id=task.task_id,
+        group_task_id=task.group_task_id,
         sub_task_task_id=task.sub_task_task_id,
         equipment_id=task.equipment_id,
         type_task=task.type_task,

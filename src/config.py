@@ -40,13 +40,14 @@ list_comannds_repeat = [
     'set_shedule',
 ]
 
-count_repeat_conf = 4
+# количество повторов для list_comannds_repeat + 1, по умолчанию 5
+count_repeat_conf = 5
 
 # перечень возможных параметров для устаровки планировзика
 list_shedule_param = ['archive daily', 'quality', 'load profile', 'no']
 
 # интервал между запросами к БД при ожидании выполнения task
-time_sleep_shedul_get_db = 10
+time_sleep_shedul_get_db = 20
 
 # интервал актуальности true task
 time_restart_true_task = 43200
