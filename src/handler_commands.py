@@ -28,6 +28,7 @@ async def run_command(task_rb: TaskEquipmentHandlerModelGet):
                 print(
                     f'{datetime.now()}: stop iter: {count_repeat} set run_command for task {task_rb.task_id}, equipment {task_rb.serial_in_sourse}, command: {task_rb.type_task}'
                 )
+
                 # meter_true = get_str_eui_hand(result, meter_true)
             count_repeat += 1
             await sleep(60)
@@ -37,12 +38,14 @@ async def run_command(task_rb: TaskEquipmentHandlerModelGet):
         if task_rb.type_task in list_command_after_set:
             for _ in range(1, 2, 1):
                 await get_after_set(task_rb)
+
         print(
             f'{datetime.now()}: stop run_command for task {task_rb.task_id}, equipment {task_rb.serial_in_sourse}, command: {task_rb.type_task}'
         )
 
 
-def get_str_eui_hand(result_in: GetComandModel, meter: str) -> str:
+def 
+(result_in: GetComandModel, meter: str) -> str:
     """функция добавляет новые meter_true к уже существующим meter_true с проверкой начилия ПУ в БС"""
     for line in result_in.meter_wl.meter_wl:
         if line.task_hand_log is not None and line.task_hand_log.status_task_db == 'true':
