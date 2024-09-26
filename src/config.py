@@ -2,6 +2,13 @@ import os
 
 from dotenv import load_dotenv
 
+from hand_config.parse_config import (
+    get_count_repeat_conf,
+    get_db_name,
+    get_time_restart_true_task,
+    get_time_sleep_shedul_get_db,
+)
+
 load_dotenv()
 
 DB_USER = os.environ.get('DB_USER')
@@ -40,17 +47,22 @@ list_comannds_repeat = [
     'set_shedule',
 ]
 
-# количество повторов для list_comannds_repeat + 1, по умолчанию 5
-count_repeat_conf = 5
-
 # перечень возможных параметров для устаровки планировзика
 list_shedule_param = ['archive daily', 'quality', 'load profile', 'no']
 
+
+# количество повторов для list_comannds_repeat + 1, по умолчанию 5
+_count_repeat_conf = get_count_repeat_conf()
+count_repeat_conf = _count_repeat_conf if _count_repeat_conf is not None else 5
+
 # интервал между запросами к БД при ожидании выполнения task
-time_sleep_shedul_get_db = 20
+_time_sleep_shedul_get_db = get_time_sleep_shedul_get_db()
+time_sleep_shedul_get_db = _time_sleep_shedul_get_db if _time_sleep_shedul_get_db is not None else 20
 
 # интервал актуальности true task
-time_restart_true_task = 43200
+_time_restart_true_task = get_time_restart_true_task()
+time_restart_true_task = _time_restart_true_task if _time_restart_true_task is not None else 43200
 
 # имя БД
-db_name = 'sqlite_python_alchemy.db'
+_db_name = get_db_name()
+db_name = _db_name if _db_name is not None else 'sqlite_python_alchemy.db'
