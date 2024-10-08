@@ -1,7 +1,7 @@
 request:
   count_repeat_conf: 4
-  time_sleep_shedul_get_db: 21
+  time_sleep_shedul_get_db: 20
   time_restart_true_task: 43201
 
 db:
-  db_name: "sqlite_python_alchemy1.db"
+  db_name: "sqlite_python_alchemy.db"
