@@ -1,5 +1,5 @@
 from asyncio import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from config import timeout_task
 from db_handler import (
@@ -32,7 +32,7 @@ async def get_after_set(task_rb: TaskEquipmentHandlerModelGet):
             # проверям статус стуб таски в БД
             if sub_task.status_task != 'start' or (
                 sub_task.status_task == 'start'
-                and (datetime.now() > sub_task.update_on + timeout_task[sub_task.timeouut_task])
+                and (datetime.now() > sub_task.update_on + timedelta(seconds=sub_task.timeouut_task))
             ):
                 # суб таска уже отработана или просрочена, получаем ПУ по ней
                 meter_task = await get_meter_filter_equipment(task_rb.equipment_id)
@@ -48,7 +48,7 @@ async def get_after_set(task_rb: TaskEquipmentHandlerModelGet):
 
             # если таска старт то попробуем подождать
             if sub_task.status_task == 'start' and (
-                datetime.now() < sub_task.update_on + timeout_task[sub_task.timeouut_task]
+                datetime.now() < sub_task.update_on + timedelta(seconds=sub_task.timeouut_task)
             ):
                 await sleep(30)
 
