@@ -64,12 +64,31 @@ class MeterWlModel(BaseModel):
     task_hand_log: ListTaskModel | None = None
 
 
+class MeterWlDelModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id_wl: int
+    status: bool
+    eui: str | None = None
+    output: str | None = None
+    error: str | None = None
+
+
 class MeterWlAllModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     status: bool
     error: str | None = None
     meter_wl: list[MeterWlModel] | None = None
+
+
+class MeterWlDelAllModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    empty_wl: bool
+    list_meter_del: str
+    error: str | None = None
+    meter_wl: list[MeterWlDelModel] | None = None
 
 
 class EquipmentInfoModel(BaseModel):
@@ -93,6 +112,7 @@ class GetComandModel(BaseModel):
     status_task: str
     meter_true: str | None
     meter_wl: MeterWlAllModel | None = None
+    meter_wl_del: MeterWlDelAllModel | None = None
     equipment_info: EquipmentInfoModel | None = None
     error: str | None = None
     total_time: int | None = None

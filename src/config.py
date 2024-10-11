@@ -7,6 +7,7 @@ from hand_config.parse_config import (
     get_db_name,
     get_time_restart_true_task,
     get_time_sleep_shedul_get_db,
+    get_wl_del_name,
 )
 
 load_dotenv()
@@ -25,7 +26,21 @@ timeout_task = {
     'get_fw_meter': 1800,
     'get_set_tarif_mask': 1800,
     'get_set_shedule': 1800,
+    'del_list_meter': 1800,
+    'del_all_meter': 1800,
 }
+
+list_command_valid = [
+    'get_shedule',
+    'get_leave_time',
+    'get_tarif_mask',
+    'get_fw_meter',
+    'set_leave_time',
+    'set_tarif_mask',
+    'set_shedule',
+    'del_list_meter',
+    'del_all_meter',
+]
 
 # перечень команд для функции get_command
 list_command = [
@@ -36,6 +51,12 @@ list_command = [
     'set_leave_time',
     'set_tarif_mask',
     'set_shedule',
+]
+
+# перечень команд для функции set_del_meter_wl
+list_command_del = [
+    'del_list_meter',
+    'del_all_meter',
 ]
 
 list_command_after_set = [
@@ -66,3 +87,7 @@ time_restart_true_task = _time_restart_true_task if _time_restart_true_task is n
 # имя БД
 _db_name = get_db_name()
 db_name = _db_name if _db_name is not None else 'sqlite_python_alchemy.db'
+
+# имя файла с ПУ на удаление из УСПД
+_wl_del_name = get_wl_del_name()
+wl_del_name = _wl_del_name if _wl_del_name is not None else 'wl_del_name.xlsx'

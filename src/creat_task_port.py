@@ -1,9 +1,16 @@
 import asyncio
+import sys
 from asyncio import Queue
 from datetime import datetime, timedelta
 
 # from handler_commands import run_command
-from config import list_command, list_shedule_param, time_restart_true_task, timeout_task
+from config import (
+    list_command_valid,
+    list_shedule_param,
+    time_restart_true_task,
+    timeout_task,
+    wl_del_name,
+)
 from data_class.data_equipment import EquipmentInExcel, UspdEquipmentInExcel
 from db_handler import (
     get_equipment_filter,
@@ -27,24 +34,12 @@ from sql.model import (
 )
 
 
-def clear_sourse_uspd(uspd: list[list]) -> list[list]:
-    print(f'{datetime.now()}: start clear_sourse_uspd')
-    count_u = 0
-
-    while count_u < len(uspd):
-        if len(uspd[count_u]) > 2 and uspd[count_u][2] is None:
-            uspd[count_u][2] = None
-        count_u += 1
-    print(f'{datetime.now()}: stop clear_sourse_uspd')
-    return uspd
-
-
 def valid_сcommand_param(uspd: list[list]) -> None:
     print(f'{datetime.now()}: start command_valid_param')
     set_shedule_param = set(list_shedule_param)
     for line in uspd:
         # проверка правильность записи команды
-        if line[4] in list_command:
+        if line[4] in list_command_valid:
             # проверка параметров для команды set_shedule
             if line[4] == 'set_shedule':
                 paramData = str(line[5]).split(',')
@@ -62,10 +57,55 @@ def valid_сcommand_param(uspd: list[list]) -> None:
     print(f'{datetime.now()}: stop convert_sours_to_dict')
 
 
+def get_list_meter_from_doc(file_nama: str) -> list[list]:
+    """функция получает сисок с [№ УСПД, № ПУ] из эксель файла и сортирует его по первому элементу вложеного списка"""
+    try:
+        list_del_meter = open_excel(wl_del_name)
+        list_del_meter = sorted(list_del_meter, key=lambda equipment: int(equipment[0]))
+    except FileNotFoundError as ex:
+        raise Exception(f'Нет файла {file_nama} со списоком удаляемых ПУ') from ex
+
+    return list_del_meter
+
+
+def get_meter_for_uspd(uspd: int | str, wl_del_list: list[list]) -> str:
+    meter_list = []
+    for line in wl_del_list:
+        if int(line[0]) == int(uspd):
+            meter_list.append(line[1])
+    result = ','.join(meter_list) + ',' if len(meter_list) > 0 else ''
+    return result
+
+
+def print_msg_uspd_empty_del_meter(list_uspd_empty: list) -> None:
+    count_empty = 0
+    len_uspd = 0
+    for line in list_uspd_empty:
+        if len(line[0]) > len_uspd:
+            len_uspd = len(line[0])
+    for line_iu in list_uspd_empty:
+        line_iu[0] = str(line_iu[0]).ljust(len_uspd) + ':'
+        if line_iu[1] == 0:
+            count_empty += 1
+        line_iu[1] = str(line_iu[1])
+        print(' '.join(line_iu))
+    if count_empty > 0:
+        print(f'Для {count_empty} УСПД не найдено ПУ для удаления, дальнейшая работа не возможна')
+        sys.exit(0)
+
+
+def check_uspd_empty_del_meter(uspd: EquipmentInExcel) -> list:
+    count_meter = len(uspd.param_data.split(',')) - 1
+    empty_check = 'Нет ПУ для удаления!' if count_meter == 0 else ''
+    return [uspd.uspd.name, count_meter, 'ПУ', empty_check]
+
+
 def convert_sours_to_dict(uspd: list[list]) -> list[EquipmentInExcel]:
     print(f'{datetime.now()}: start convert_sours_to_dict')
     result = []
     count = 1
+    list_del_meter = None
+    list_uspd_empty = []
     for line in uspd:
         temp_uspd = UspdEquipmentInExcel(name=str(line[0]), ip1=line[1], ip2=line[2])
         if len(line) < 6:
@@ -74,8 +114,16 @@ def convert_sours_to_dict(uspd: list[list]) -> list[EquipmentInExcel]:
             param_data = None if line[5] is None else str(line[5])
         # param_data = None if len(line) < 6 else str(line[5])
         temp_dict = EquipmentInExcel(uspd=temp_uspd, command=line[4], param_data=param_data)
+        if line[4] == 'del_list_meter':
+            if list_del_meter is None:
+                list_del_meter = get_list_meter_from_doc(wl_del_name)
+            meter_del_list = get_meter_for_uspd(line[0], list_del_meter)
+            temp_dict.param_data = meter_del_list
+            list_uspd_empty.append(check_uspd_empty_del_meter(temp_dict))
         result.append(temp_dict)
         count += 1
+    if len(list_uspd_empty) > 0:
+        print_msg_uspd_empty_del_meter(list_uspd_empty)
     print(f'{datetime.now()}: stop convert_sours_to_dict')
     return result
 
@@ -170,7 +218,7 @@ def get_continue_task(
             if line_uin.uspd.name == line_t.serial_in_sourse and line_uin.command == line_t.type_task:
                 if line_t.status_task == 'start':
                     timeout_for_task = line_t.update_on + timedelta(seconds=line_t.timeouut_task)
-                    if timeout_for_task > datetime.now():
+                    if timeout_for_task < datetime.now():
                         result['change_task'].append(
                             TaskModelUpdate(
                                 task_id=line_t.task_id,
@@ -194,7 +242,7 @@ def get_continue_task(
                 # time_restart_true_task
                 timeout_restart_true = line_t.update_on + timedelta(seconds=time_restart_true_task)
                 if line_t.status_task == 'true':
-                    if timeout_restart_true > datetime.now():
+                    if timeout_restart_true < datetime.now():
                         result['change_task'].append(
                             TaskModelUpdate(
                                 task_id=line_t.task_id,

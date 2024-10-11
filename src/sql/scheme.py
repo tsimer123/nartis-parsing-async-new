@@ -36,6 +36,7 @@ class Equipment(Base):
     meter: Mapped[list['Meter']] = relationship(back_populates='equipment')
     log_equipment: Mapped[list['LogEquipment']] = relationship(back_populates='equipment')
     task: Mapped[list['Task']] = relationship(back_populates='equipment')
+    meter_del: Mapped[list['MeterDel']] = relationship(back_populates='equipment')
 
 
 class Meter(Base):
@@ -124,3 +125,18 @@ class GroupTask(Base):
 
     task: Mapped[list['Task']] = relationship(back_populates='group_task')
     # log_equipment: Mapped[list['LogEquipment']] = relationship(back_populates='group_task')
+
+
+class MeterDel(Base):
+    # Удаленные ПУ
+    __tablename__ = 'meter_del'
+
+    meter_del_id: Mapped[int] = mapped_column(primary_key=True)
+    equipment_id: Mapped[int] = mapped_column(Integer, ForeignKey('equipment.equipment_id'))
+    id_wl: Mapped[int] = mapped_column(Integer)
+    eui: Mapped[str] = mapped_column(Text)
+    delete_status: Mapped[bool] = mapped_column(Boolean)
+    created_on: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    update_on: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    equipment: Mapped['Equipment'] = relationship(back_populates='meter_del')

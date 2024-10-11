@@ -1,9 +1,11 @@
 from asyncio import sleep
 from datetime import datetime
 
-from config import count_repeat_conf, list_comannds_repeat, list_command, list_command_after_set
+from config import count_repeat_conf, list_comannds_repeat, list_command, list_command_after_set, list_command_del
 from data_class.data_get_command import GetComandModel
+from handlers.handler_del_meter import hand_result_del
 from handlers.handler_get_command import hand_result
+from logics.del_meter import set_del_meter_wl
 from logics.get_command import get_command
 from logics.set_command import get_after_set
 from sql.model import TaskEquipmentHandlerModelGet
@@ -39,9 +41,13 @@ async def run_command(task_rb: TaskEquipmentHandlerModelGet):
             for _ in range(1, 2, 1):
                 await get_after_set(task_rb)
 
-        print(
-            f'{datetime.now()}: stop run_command for task {task_rb.task_id}, equipment {task_rb.serial_in_sourse}, command: {task_rb.type_task}'
-        )
+    if task_rb.type_task in list_command_del:
+        result_del = await set_del_meter_wl(task_rb)
+        await hand_result_del(result_del)
+
+    print(
+        f'{datetime.now()}: stop run_command for task {task_rb.task_id}, equipment {task_rb.serial_in_sourse}, command: {task_rb.type_task}'
+    )
 
 
 def get_str_eui_hand(result_in: GetComandModel, meter: str) -> str:
