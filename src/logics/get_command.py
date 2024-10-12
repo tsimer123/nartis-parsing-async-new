@@ -58,10 +58,11 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
         if auth.status is True:
             token = auth.data
             try:
-                # полуячаем данные по УСПД
+                # получаем часовй пояс УСПД
                 timezone = await get_tzcode(con, token)
                 if timezone is not None:
                     task_rb.time_zone = timezone
+                # получаем данные по УСПД
                 result.equipment_info = await get_dev_info(con, token)
                 # получаем БС из УСПД
                 result.meter_wl = await get_wl(con, token)
@@ -69,7 +70,7 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
                     if result.meter_wl.status is True:
                         if len(result.meter_wl.meter_wl) > 0:
                             # получаем id ПУ из БС для запросов параметров
-                            id_for_task = get_meters_for_task(task_rb.meter_true, result.meter_wl.meter_wl)
+                            id_for_task = get_meters_for_task_mac(task_rb.meter_true, result.meter_wl.meter_wl)
                             if len(id_for_task) > 0:
                                 list_task = []
                                 # создаем таски по параметрам
@@ -200,8 +201,8 @@ async def get_wl(con: BaseRequest, token: str) -> MeterWlAllModel | None:
     return result
 
 
-def get_meters_for_task(meter_true: str, meters_wl: list[MeterWlModel]) -> list[int] | None:
-    """Функция готовит список id ПУ из БС для которых надо запросить информацию"""
+def get_meters_for_task_mac(meter_true: str, meters_wl: list[MeterWlModel]) -> list[int] | None:
+    """Функция готовит список id ZB ПУ из БС для которых надо запросить информацию"""
     result = None
     if meter_true is not None:
         list_meters_true = set(meter_true.split(','))
@@ -221,7 +222,11 @@ def get_meters_for_task(meter_true: str, meters_wl: list[MeterWlModel]) -> list[
                     result.append(line_wl.id_wl)
                     break
     else:
-        result = [line.id_wl for line in meters_wl]
+        result = [
+            line.id_wl
+            for line in meters_wl
+            if re.search('[ABCDEFabcdef]', line.eui) is not None and line.archive is False
+        ]
     return result
 
 

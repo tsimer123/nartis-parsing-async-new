@@ -67,3 +67,17 @@ def get_db_name() -> str | None:
             return None
     else:
         return None
+
+
+def get_wl_del_name() -> str | None:
+    result = get_data()
+    if result is not None:
+        if 'doc' in result and 'wl_del_name' in result['doc']:
+            if type(result['doc']['wl_del_name']) is str:
+                return result['doc']['wl_del_name']
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None

@@ -5,3 +5,6 @@ request:
 
 db:
   db_name: "sqlite_python_alchemy.db"
+
+doc:
+  wl_del_name: "wl_del_name.xlsx"

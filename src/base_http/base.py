@@ -130,6 +130,24 @@ class BaseRequest:
             result.error = ex.args
         return result
 
+    async def delete_request(self, api: str, accessToken: str) -> GetResponseModel:
+        result = self.set_default_result()
+        headers = self.create_heders_with_auth(accessToken)
+        url = f'http://{self.host}/api/v1/{api}'
+        # headers = self.create_heders()
+
+        try:
+            resp = await asyncio.wait_for(
+                self.session.delete(url, headers=headers),
+                timeout=120,
+            )
+            result.data = await resp.text()
+            if resp.ok and resp.status < 400:
+                result.status = True
+        except Exception as ex:
+            result.error = ex.args
+        return result
+
 
 # async def main():
 #     cookiejar = CookieJar(unsafe=True)

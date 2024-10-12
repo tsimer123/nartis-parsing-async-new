@@ -181,3 +181,31 @@ class LogHandModelSet(BaseModel):
     equipment_id: int
     status_response: bool
     response: str | None = None
+
+
+class MeterDelHandModelSet(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    equipment_id: int
+    id_wl: int
+    eui: str
+    delete_status: bool
+
+
+class MeterDelHandModelGet(MeterDelHandModelSet):
+    model_config = ConfigDict(from_attributes=True)
+
+    meter_del_id: int
+
+
+class MeterDelHandModelUpdate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    meter_del_id: int
+    delete_status: bool
+
+
+class MeterDelHandModelDel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    eui: int

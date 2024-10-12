@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import and_, delete, insert, select, update
 
 from config import db_name
 from sql.engine import get_async_session
@@ -10,6 +10,10 @@ from sql.model import (
     EquipmentModelGet,
     EquipmentModelSet,
     LogHandModelSet,
+    MeterDelHandModelDel,
+    MeterDelHandModelGet,
+    MeterDelHandModelSet,
+    MeterDelHandModelUpdate,
     MeterHandModelGet,
     MeterHandModelSet,
     MeterModelUpdate,
@@ -23,7 +27,7 @@ from sql.model import (
     TaskModelUpdate,
     TaskSubTaskModelGet,
 )
-from sql.scheme import Equipment, GroupTask, LogEquipment, Meter, Task, create_db
+from sql.scheme import Equipment, GroupTask, LogEquipment, Meter, MeterDel, Task, create_db
 
 
 async def start_db(type_start):
@@ -286,6 +290,67 @@ async def get_task_filter_task(task_id: int, time_zone: int) -> list[TaskEquipme
     return task_get
 
 
+async def get_meter_del_filter(in_meter: list[str], equipment_id_in: int) -> list[MeterDelHandModelGet]:
+    """получение всех удаляемых ПУ из БД по EUI и УСПД"""
+    stmt = select(MeterDel).where(and_(MeterDel.eui.in_(in_meter), MeterDel.equipment_id == equipment_id_in))
+
+    session = [session async for session in get_async_session()][0]
+
+    result = await session.execute(stmt)
+
+    uspd_get = []
+
+    for a in result.scalars():
+        uspd_get.append(init_get_meter_del(a))
+
+    await session.close()
+
+    return uspd_get
+
+
+async def update_data_after_hand_delete_meter(
+    task: TaskHandModelUpdate,
+    equipment: EquipmentHandModelUpdate | None,
+    meter: dict[list[MeterDelHandModelUpdate], list[MeterDelHandModelSet], list[MeterDelHandModelDel]],
+    log: LogHandModelSet,
+) -> None:
+    """Занесение результатов по удальению ПУ из БС командами из списка list_command_del"""
+    session = [session async for session in get_async_session()][0]
+    try:
+        task_update = [task.model_dump()]
+        stmt_task = update(Task)
+        await session.execute(stmt_task, task_update)
+
+        if equipment is not None:
+            equipment_update = [equipment.model_dump()]
+            stmt_equipment = update(Equipment)
+            await session.execute(stmt_equipment, equipment_update)
+
+        if len(meter['update_meter']) > 0:
+            meter_update = [line_um.model_dump(exclude_none=True) for line_um in meter['update_meter']]
+            stmt_meter_update = update(MeterDel)
+            await session.execute(stmt_meter_update, meter_update)
+
+        if len(meter['create_meter']) > 0:
+            value = [line_cm.model_dump() for line_cm in meter['create_meter']]
+            meter_create = insert(MeterDel).values(value)
+            await session.execute(meter_create)
+
+        if len(meter['delete_meter']) > 0:
+            meter_delete = [line_um.model_dump(exclude_none=True) for line_um in meter['delete_meter']]
+            stmt_meter_update = delete(MeterDel).where(MeterDel.eui.in_(meter_delete))
+            await session.execute(stmt_meter_update, meter_update)
+
+        stmt_log = insert(LogEquipment).values([log.model_dump()])
+        await session.execute(stmt_log)
+
+        await session.commit()
+    except Exception as ex:
+        await session.rollback()
+        print(f'{datetime.now()}: ---------- Ошибка записи в БД сервиса: {ex.args}')
+    await session.close()
+
+
 def init_get_uspd(uspd: Equipment) -> EquipmentModelGet:
     temp_uspd = EquipmentModelGet(
         equipment_id=uspd.equipment_id,
@@ -402,3 +467,14 @@ async def init_get_task_sub_task(task: Task) -> TaskSubTaskModelGet:
         update_on=task.update_on,
     )
     return temp_uspd
+
+
+def init_get_meter_del(meter_del: MeterDel) -> MeterDelHandModelGet:
+    temp_meter = MeterDelHandModelGet(
+        meter_del_id=meter_del.meter_del_id,
+        equipment_id=meter_del.equipment_id,
+        id_wl=meter_del.id_wl,
+        eui=meter_del.eui,
+        delete_status=meter_del.delete_status,
+    )
+    return temp_meter
