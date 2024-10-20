@@ -82,31 +82,32 @@ async def hand_meter(
         'create_meter': [],
         'delete_meter': [],
     }
-    if result_in.meter_wl_del.empty_wl is False and result_in.meter_wl_del.meter_wl is not None:
-        meter_del = [metrer_del.eui for metrer_del in result_in.meter_wl_del.meter_wl]
-        meter_from_db = await get_meter_del_filter(meter_del, result_in.equipment_id)
-        for line_md in result_in.meter_wl_del.meter_wl:
-            trigger_meter_wl_del = 0
-            for line_mfd in meter_from_db:
-                if line_md.eui == line_mfd.eui and line_md.status is True and line_mfd.delete_status is False:
-                    dict_result['update_meter'].append(
-                        MeterDelHandModelUpdate(meter_del_id=line_mfd.meter_del_id, delete_status=True)
+    if result_in.meter_wl_del is not None:
+        if result_in.meter_wl_del.empty_wl is False and result_in.meter_wl_del.meter_wl is not None:
+            meter_del = [metrer_del.eui for metrer_del in result_in.meter_wl_del.meter_wl]
+            meter_from_db = await get_meter_del_filter(meter_del, result_in.equipment_id)
+            for line_md in result_in.meter_wl_del.meter_wl:
+                trigger_meter_wl_del = 0
+                for line_mfd in meter_from_db:
+                    if line_md.eui == line_mfd.eui and line_md.status is True and line_mfd.delete_status is False:
+                        dict_result['update_meter'].append(
+                            MeterDelHandModelUpdate(meter_del_id=line_mfd.meter_del_id, delete_status=True)
+                        )
+                        trigger_meter_wl_del = 1
+                        break
+                if trigger_meter_wl_del == 0:
+                    dict_result['create_meter'].append(
+                        MeterDelHandModelSet(
+                            equipment_id=result_in.equipment_id,
+                            id_wl=line_md.id_wl,
+                            eui=line_md.eui,
+                            delete_status=line_md.status,
+                        )
                     )
-                    trigger_meter_wl_del = 1
-                    break
-            if trigger_meter_wl_del == 0:
-                dict_result['create_meter'].append(
-                    MeterDelHandModelSet(
-                        equipment_id=result_in.equipment_id,
-                        id_wl=line_md.id_wl,
-                        eui=line_md.eui,
-                        delete_status=line_md.status,
-                    )
-                )
-    meter_db_eui = set([sel_line_mfd.eui for sel_line_mfd in meter_from_db])
-    delete_meter = meter_db_eui - set(meter_del)
-    if len(delete_meter) > 0:
-        dict_result['delete_meter'] = list(delete_meter)
+        meter_db_eui = set([sel_line_mfd.eui for sel_line_mfd in meter_from_db])
+        delete_meter = meter_db_eui - set(meter_del)
+        if len(delete_meter) > 0:
+            dict_result['delete_meter'] = list(delete_meter)
     return dict_result
 
 
