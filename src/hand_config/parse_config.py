@@ -81,3 +81,17 @@ def get_wl_del_name() -> str | None:
             return None
     else:
         return None
+
+
+def get_parallel_del() -> int | None:
+    result = get_data()
+    if result is not None:
+        if 'del' in result and 'max_count_parallel_del' in result['request']:
+            if type(result['del']['max_count_parallel_del']) is int:
+                return result['del']['max_count_parallel_del']
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None

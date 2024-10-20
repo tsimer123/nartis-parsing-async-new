@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from hand_config.parse_config import (
     get_count_repeat_conf,
     get_db_name,
+    get_parallel_del,
     get_time_restart_true_task,
     get_time_sleep_shedul_get_db,
     get_wl_del_name,
@@ -91,3 +92,7 @@ db_name = _db_name if _db_name is not None else 'sqlite_python_alchemy.db'
 # имя файла с ПУ на удаление из УСПД
 _wl_del_name = get_wl_del_name()
 wl_del_name = _wl_del_name if _wl_del_name is not None else 'wl_del_name.xlsx'
+
+# интервал между запросами к БД при ожидании выполнения task
+_max_count_parallel_del = get_parallel_del()
+MAX_COUNT_PARALLEL_DEL = _max_count_parallel_del if _max_count_parallel_del is not None else 20
