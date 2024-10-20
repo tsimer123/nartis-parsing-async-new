@@ -209,3 +209,59 @@ class MeterDelHandModelDel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     eui: int
+
+
+class MeterWLModelSet(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    equipment_id: int
+    meter_new_id: int
+    id_wl_in_uspd: int
+    present: bool
+    archive: bool
+    included_in_survey: bool
+    added: datetime
+    id_interface: int
+    id_model: int
+    last_success_time: datetime | None = None
+    name: str | None = None
+    mod_name: str | None = None
+    serial: str | None = None
+    res_name: str | None = None
+
+
+class MeterWLModelGet(MeterWLModelSet):
+    model_config = ConfigDict(from_attributes=True)
+
+    wl_id: int
+    eui: str
+
+
+class MeterWLModelUpdate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    wl_id: int
+    id_wl_in_uspd: int | None = None
+    present: bool | None = None
+    archive: bool | None = None
+    included_in_survey: bool | None = None
+    added: datetime | None = None
+    id_interface: int | None = None
+    id_model: int | None = None
+    last_success_time: datetime | None = None
+    name: str | None = None
+    mod_name: str | None = None
+    serial: str | None = None
+    res_name: str | None = None
+
+
+class MeterNewModelSet(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    eui: str
+
+
+class MeterNewModelGet(MeterNewModelSet):
+    model_config = ConfigDict(from_attributes=True)
+
+    meter_new_id: int

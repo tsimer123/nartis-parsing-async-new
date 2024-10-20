@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.schema import UniqueConstraint
 
 from sql.engine import async_engine
 
@@ -37,6 +38,7 @@ class Equipment(Base):
     log_equipment: Mapped[list['LogEquipment']] = relationship(back_populates='equipment')
     task: Mapped[list['Task']] = relationship(back_populates='equipment')
     meter_del: Mapped[list['MeterDel']] = relationship(back_populates='equipment')
+    wl: Mapped[list['Wl']] = relationship(back_populates='equipment')
 
 
 class Meter(Base):
@@ -140,3 +142,47 @@ class MeterDel(Base):
     update_on: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     equipment: Mapped['Equipment'] = relationship(back_populates='meter_del')
+
+
+class MeterNew(Base):
+    # ПУ новые с уникальным eui для связей
+    __tablename__ = 'meter_new'
+
+    meter_new_id: Mapped[int] = mapped_column(primary_key=True)
+    eui: Mapped[str] = mapped_column(Text)
+    created_on: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    update_on: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    wl: Mapped[list['Wl']] = relationship(back_populates='meter_new')
+
+    __table_args__ = (
+        UniqueConstraint(
+            'eui',
+        ),
+    )
+
+
+class Wl(Base):
+    # Связь Белого Списка между УСПД и ПУ
+    __tablename__ = 'wl'
+
+    wl_id: Mapped[int] = mapped_column(primary_key=True)
+    equipment_id: Mapped[int] = mapped_column(Integer, ForeignKey('equipment.equipment_id'))
+    meter_new_id: Mapped[int] = mapped_column(Integer, ForeignKey('meter_new.meter_new_id'))
+    id_wl_in_uspd: Mapped[int] = mapped_column(Integer)
+    present: Mapped[bool] = mapped_column(Boolean)
+    archive: Mapped[bool] = mapped_column(Boolean)
+    included_in_survey: Mapped[bool] = mapped_column(Boolean)
+    added: Mapped[datetime] = mapped_column(DateTime)
+    id_interface: Mapped[int] = mapped_column(Integer)
+    id_model: Mapped[int] = mapped_column(Integer)
+    last_success_time: Mapped[datetime | None] = mapped_column(DateTime)
+    name: Mapped[str | None] = mapped_column(Text)
+    mod_name: Mapped[str | None] = mapped_column(Text)
+    serial: Mapped[str | None] = mapped_column(Text)
+    res_name: Mapped[str | None] = mapped_column(Text)
+    created_on: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    update_on: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    equipment: Mapped['Equipment'] = relationship(back_populates='wl')
+    meter_new: Mapped['MeterNew'] = relationship(back_populates='wl')

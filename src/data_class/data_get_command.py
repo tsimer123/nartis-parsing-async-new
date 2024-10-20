@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from data_class.data_get_wl import MeterWlForWLAllModel
+
 
 class TaskGetModel(BaseModel):
     """Сохраняем результат http запроса"""
@@ -110,8 +112,10 @@ class GetComandModel(BaseModel):
     equipment_id: int
     type_task: str
     status_task: str
+    time_zone: int
     meter_true: str | None
     meter_wl: MeterWlAllModel | None = None
+    meter_wl_wl: MeterWlForWLAllModel | None = None
     meter_wl_del: MeterWlDelAllModel | None = None
     equipment_info: EquipmentInfoModel | None = None
     error: str | None = None

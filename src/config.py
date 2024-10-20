@@ -29,6 +29,7 @@ timeout_task = {
     'get_set_shedule': 1800,
     'del_list_meter': 1800,
     'del_all_meter': 1800,
+    'get_wl': 1800,
 }
 
 list_command_valid = [
@@ -41,6 +42,7 @@ list_command_valid = [
     'set_shedule',
     'del_list_meter',
     'del_all_meter',
+    'get_wl',
 ]
 
 # перечень команд для функции get_command
@@ -58,6 +60,10 @@ list_command = [
 list_command_del = [
     'del_list_meter',
     'del_all_meter',
+]
+
+list_comannds_get_wl = [
+    'get_wl',
 ]
 
 list_command_after_set = [
