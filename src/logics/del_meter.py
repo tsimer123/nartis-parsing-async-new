@@ -24,6 +24,7 @@ async def set_del_meter_wl(task_rb: TaskEquipmentHandlerModelGet):
         type_task=task_rb.type_task,
         status_task='false',
         meter_true=task_rb.meter_true,
+        time_zone=task_rb.time_zone,
     )
     # включаем хранение куки для ip адресов
     cookiejar = CookieJar(unsafe=True)
@@ -52,6 +53,7 @@ async def set_del_meter_wl(task_rb: TaskEquipmentHandlerModelGet):
                 timezone = await get_tzcode(con, token)
                 if timezone is not None:
                     task_rb.time_zone = timezone
+                    result.time_zone = timezone
                 # получаем данные по УСПД
                 result.equipment_info = await get_dev_info(con, token)
                 # получаем БС из УСПД

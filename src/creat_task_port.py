@@ -285,6 +285,34 @@ def get_restart_task(
     return task
 
 
+def check_tasks_duplicates(data: list[EquipmentInExcel]) -> list[EquipmentInExcel]:
+    """
+    Функция проверяет задачания в вводном файле:
+        - на наличеие одинаковых задач для одной УСПД;
+        - на разные IP для одной УСПД для разных задач
+    """
+    result: list[EquipmentInExcel] = []
+
+    for line_in in data:
+        trigger_task = 0
+        for line_out in result:
+            if line_in.uspd.name == line_out.uspd.name:
+                temp_ip_list = [line_out.uspd.ip1, line_out.uspd.ip2]
+                if line_in.uspd.ip1 in temp_ip_list and line_in.uspd.ip2 in temp_ip_list:
+                    if line_in.command != line_out.command:
+                        result.append(line_in)
+                        trigger_task = 1
+                    else:
+                        print(f'Дубль: {line_in}')
+                        raise Exception('Дубль команды для одной УСПД в одном файле')
+                else:
+                    print(f'Разные IP для одной УСПД: {line_in}')
+                    raise Exception('Для УСПД в одной файле указаны разные IP')
+        if trigger_task == 0:
+            result.append(line_in)
+    return result
+
+
 async def get_task(
     type_start: str, counter_iter: int, group_task_id: int, time_zone: int
 ) -> list[TaskEquipmentHandlerModelGet]:
@@ -297,6 +325,8 @@ async def get_task(
     valid_сcommand_param(data)
     # преобразовываем список в список классов pydantic (удобно сериализовать в sqlalchemy)
     data = convert_sours_to_dict(data)
+    # проверяем вводные данные на дубли и разные ip
+    data = check_tasks_duplicates(data)
     # получаем списосок имен УСПД из Excel
     equipment_name = get_number_equipment(data)
     if counter_iter == 0:

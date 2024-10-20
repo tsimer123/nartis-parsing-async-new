@@ -17,6 +17,11 @@ from sql.model import (
     MeterHandModelGet,
     MeterHandModelSet,
     MeterModelUpdate,
+    MeterNewModelGet,
+    MeterNewModelSet,
+    MeterWLModelGet,
+    MeterWLModelSet,
+    MeterWLModelUpdate,
     SubTaskModelSet,
     TaskEquipmentHandlerModelGet,
     TaskEquipmentModelGet,
@@ -27,7 +32,7 @@ from sql.model import (
     TaskModelUpdate,
     TaskSubTaskModelGet,
 )
-from sql.scheme import Equipment, GroupTask, LogEquipment, Meter, MeterDel, Task, create_db
+from sql.scheme import Equipment, GroupTask, LogEquipment, Meter, MeterDel, MeterNew, Task, Wl, create_db
 
 
 async def start_db(type_start):
@@ -167,6 +172,43 @@ async def get_meter_filter(in_meter: list[str]) -> list[MeterHandModelGet]:
     return uspd_get
 
 
+async def get_meter_new_filter(in_meter: list[str]) -> list[MeterNewModelGet]:
+    """получение всех ПУ из БД по EUI"""
+    stmt = select(MeterNew).where(MeterNew.eui.in_(in_meter))
+
+    session = [session async for session in get_async_session()][0]
+
+    result = await session.execute(stmt)
+
+    uspd_get = []
+
+    for a in result.scalars():
+        uspd_get.append(init_get_meter_new(a))
+
+    await session.close()
+
+    return uspd_get
+
+
+async def set_meter_new(meter_new: list[MeterNewModelSet]) -> None | list:
+    stmt = insert(MeterNew).values([line_mn.model_dump() for line_mn in meter_new])
+
+    try:
+        session = [session async for session in get_async_session()][0]
+
+        await session.execute(stmt)
+
+        await session.commit()
+        result = None
+
+    except Exception as ex:
+        await session.rollback()
+        print(f'{datetime.now()}: ---------- Ошибка записи в БД сервиса: {ex.args}')
+        result = ex.args
+    await session.close()
+    return result
+
+
 async def update_data_after_hand(
     task: TaskHandModelUpdate,
     equipment: EquipmentHandModelUpdate | None,
@@ -249,6 +291,24 @@ async def get_meter_filter_equipment(equipment_id: int) -> list[MeterHandModelGe
 
     for a in result.scalars():
         uspd_get.append(init_get_meter(a))
+
+    await session.close()
+
+    return uspd_get
+
+
+async def get_wl_filter_equipment(equipment_id: int) -> list[MeterWLModelGet]:
+    """получение всех WL из БД по equipment_id"""
+    stmt = select(Wl, MeterNew).join(MeterNew.wl).where(Wl.equipment_id == equipment_id)
+
+    session = [session async for session in get_async_session()][0]
+
+    result = await session.execute(stmt)
+
+    uspd_get = []
+
+    for a in result.scalars():
+        uspd_get.append(init_get_wl(a))
 
     await session.close()
 
@@ -351,6 +411,47 @@ async def update_data_after_hand_delete_meter(
     await session.close()
 
 
+async def update_data_after_hand_get_wl(
+    task: TaskHandModelUpdate,
+    equipment: EquipmentHandModelUpdate | None,
+    meter: dict[list[MeterWLModelUpdate], list[MeterWLModelSet]],
+    log: LogHandModelSet,
+) -> None:
+    """Занесение результатов по удальению ПУ из БС командами из списка list_command_del"""
+    session = [session async for session in get_async_session()][0]
+    try:
+        task_update = [task.model_dump()]
+        stmt_task = update(Task)
+        await session.execute(stmt_task, task_update)
+
+        if equipment is not None:
+            equipment_update = [equipment.model_dump()]
+            stmt_equipment = update(Equipment)
+            await session.execute(stmt_equipment, equipment_update)
+
+        if len(meter['update_wl']) > 0:
+            meter_update = [line_um.model_dump(exclude_none=True) for line_um in meter['update_wl']]
+            stmt_meter_update = update(Wl)
+            await session.execute(stmt_meter_update, meter_update)
+
+        if len(meter['create_wl']) > 0:
+            value = [line_cm.model_dump() for line_cm in meter['create_wl']]
+            meter_create = insert(Wl).values(value)
+            await session.execute(meter_create)
+
+        stmt_log = insert(LogEquipment).values([log.model_dump()])
+        await session.execute(stmt_log)
+
+        await session.commit()
+        result = None
+    except Exception as ex:
+        await session.rollback()
+        print(f'{datetime.now()}: ---------- Ошибка записи в БД сервиса: {ex.args}')
+        result = ex.args
+    await session.close()
+    return result
+
+
 def init_get_uspd(uspd: Equipment) -> EquipmentModelGet:
     temp_uspd = EquipmentModelGet(
         equipment_id=uspd.equipment_id,
@@ -447,6 +548,36 @@ def init_get_meter(meter: Meter) -> MeterHandModelGet:
         board_ver=meter.board_ver,
         board_ver_status=meter.board_ver_status,
         board_ver_date=meter.board_ver_date,
+    )
+    return temp_meter
+
+
+def init_get_meter_new(meter: MeterNew) -> MeterNewModelGet:
+    temp_meter = MeterNewModelGet(
+        meter_new_id=meter.meter_new_id,
+        eui=meter.eui,
+    )
+    return temp_meter
+
+
+def init_get_wl(wl: Wl) -> MeterWLModelGet:
+    temp_meter = MeterWLModelGet(
+        wl_id=wl.wl_id,
+        eui=wl.meter_new.eui,
+        equipment_id=wl.equipment_id,
+        meter_new_id=wl.meter_new_id,
+        id_wl_in_uspd=wl.id_wl_in_uspd,
+        present=wl.present,
+        archive=wl.archive,
+        included_in_survey=wl.included_in_survey,
+        added=wl.added,
+        id_interface=wl.id_interface,
+        id_model=wl.id_model,
+        last_success_time=wl.last_success_time,
+        name=wl.name,
+        mod_name=wl.mod_name,
+        serial=wl.serial,
+        res_name=wl.res_name,
     )
     return temp_meter
 

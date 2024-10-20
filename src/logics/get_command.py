@@ -34,6 +34,7 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
         type_task=task_rb.type_task,
         status_task='false',
         meter_true=task_rb.meter_true,
+        time_zone=task_rb.time_zone,
     )
     # включаем хранение куки для ip адресов
     cookiejar = CookieJar(unsafe=True)
@@ -62,6 +63,7 @@ async def get_command(task_rb: TaskEquipmentHandlerModelGet) -> GetComandModel:
                 timezone = await get_tzcode(con, token)
                 if timezone is not None:
                     task_rb.time_zone = timezone
+                    result.time_zone = timezone
                 # получаем данные по УСПД
                 result.equipment_info = await get_dev_info(con, token)
                 # получаем БС из УСПД

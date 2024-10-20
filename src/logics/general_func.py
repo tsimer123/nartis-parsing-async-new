@@ -7,6 +7,7 @@ from data_class.data_get_command import (
     MeterWlAllModel,
     MeterWlModel,
 )
+from data_class.data_get_wl import MeterWlForWLAllModel, MeterWlForWlModel
 
 
 async def get_tzcode(con: BaseRequest, token: str) -> int | None:
@@ -70,5 +71,40 @@ async def get_wl(con: BaseRequest, token: str) -> MeterWlAllModel | None:
             result = MeterWlAllModel(status=False, error=str(meter_wl.error))
     except Exception as ex:
         result = MeterWlAllModel(status=False, error=str(ex.args))
+
+    return result
+
+
+async def get_wl_for_wl(con: BaseRequest, token: str) -> MeterWlForWLAllModel | None:
+    """Функция запропшивает ПУ из БС для таблицы wl, если вернет None, то это не штатная ситуация"""
+    result = None
+    meter_wl = await con.get_request('devices', token)
+    try:
+        if meter_wl.status is True:
+            result = MeterWlForWLAllModel(status=True)
+            meter_wl.data = json.loads(meter_wl.data)
+            if len(meter_wl.data) > 0:
+                result.meter_wl = []
+                for line in meter_wl.data:
+                    result.meter_wl.append(
+                        MeterWlForWlModel(
+                            id_wl_in_uspd=line['id'],
+                            eui=line['eui'],
+                            archive=line['archive'],
+                            included_in_survey=line['included_in_survey'],
+                            added=line['added'],
+                            id_interface=line['id_interface'],
+                            id_model=line['id_model'],
+                            last_success_time=line['last_success_time'],
+                            name=line['name'],
+                            mod_name=line['mod_name'],
+                            serial=line['serial'],
+                            res_name=line['res_name'],
+                        )
+                    )
+        else:
+            result = MeterWlForWLAllModel(status=False, error=str(meter_wl.error))
+    except Exception as ex:
+        result = MeterWlForWLAllModel(status=False, error=str(ex.args))
 
     return result
