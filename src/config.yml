@@ -8,3 +8,6 @@ db:
 
 doc:
   wl_del_name: "wl_del_name.xlsx"
+
+del:
+  max_count_parallel_del: 20

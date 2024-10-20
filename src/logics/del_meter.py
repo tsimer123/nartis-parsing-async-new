@@ -1,9 +1,11 @@
+import asyncio
 import json
 from datetime import datetime
 
 from aiohttp import ClientSession, CookieJar
 
 from base_http.base import BaseRequest
+from config import MAX_COUNT_PARALLEL_DEL
 from data_class.data_get_command import GetComandModel, MeterWlDelAllModel, MeterWlDelModel, MeterWlModel
 from logics.general_func import get_dev_info, get_tzcode, get_wl
 from sql.model import (
@@ -60,7 +62,7 @@ async def set_del_meter_wl(task_rb: TaskEquipmentHandlerModelGet):
                             # получаем id ПУ из БС для удаления
                             id_for_del = get_meters_for_task_all(task_rb, result)
                             if len(id_for_del) > 0:
-                                result.meter_wl_del = await handler_delete_meter(
+                                result.meter_wl_del = await handler_delete_meter_async(
                                     con, token, id_for_del, task_rb, result.meter_wl.meter_wl
                                 )
                                 result.status_task = await check_all_del_meter(con, token, task_rb)
@@ -129,6 +131,56 @@ async def handler_delete_meter(
             if meter.id_wl == line:
                 break
         temp_result.append(await get_delete_meter(con, token, line, meter.eui))
+    result = MeterWlDelAllModel(empty_wl=False, list_meter_del=task_rb.param_data, meter_wl=temp_result)
+    return result
+
+
+async def handler_delete_meter_async(
+    con: BaseRequest, token: str, id_for_del: list, task_rb: TaskEquipmentHandlerModelGet, meter_wl: list[MeterWlModel]
+) -> MeterWlDelAllModel:
+    count_min = MAX_COUNT_PARALLEL_DEL
+    id_meters = []
+    temp_result = []
+    count_m = 0
+    for line in id_for_del:
+        for meter in meter_wl:
+            if meter.id_wl == line:
+                id_meters.append({'count': count_m, 'id': line, 'eui': meter.eui})
+                count_m += 1
+        # temp_result.append(await get_delete_meter(con, token, line, meter.eui))
+
+    if len(id_meters) > 0:
+        if len(id_meters) < count_min:
+            count_min = len(id_meters)
+
+        id_meters_start = id_meters[:count_min]
+
+        pending = [
+            asyncio.create_task(get_delete_meter(con, token, id_meter['id'], id_meter['eui']))
+            for id_meter in id_meters_start
+        ]
+
+        count_id = count_min
+        while pending:
+            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+
+            if len(pending) < count_min and count_id < len(id_meters):
+                pending.add(
+                    asyncio.create_task(
+                        get_delete_meter(con, token, id_meters[count_id]['id'], id_meters[count_id]['eui'])
+                    )
+                )
+                count_id += 1
+
+            print(f'Done task count: {len(done)}')
+            print(f'Pending task count: {len(pending)}')
+
+            for done_task in done:
+                temp_result.append(await done_task)
+
+    else:
+        return []
+
     result = MeterWlDelAllModel(empty_wl=False, list_meter_del=task_rb.param_data, meter_wl=temp_result)
     return result
 
